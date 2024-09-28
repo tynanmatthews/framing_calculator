@@ -1,0 +1,92 @@
+{% extends 'base.html' %} {% block title %}Job Detail - {{ job.id }}{% endblock
+%} {% block content %}
+<h1>Job Detail</h1>
+
+<div class="job-info">
+    <h2>Job #{{ job.id }}</h2>
+    <p><strong>Customer:</strong> {{ job.customer.name }}</p>
+    <p><strong>Date Created:</strong> {{ job.date_created|date:"F d, Y" }}</p>
+    <p><strong>Description:</strong> {{ job.description }}</p>
+    <p><strong>Total Price:</strong> ${{ job.total_price }}</p>
+</div>
+
+<div class="job-components">
+    <h3>Job Components</h3>
+
+    <h4>Frames</h4>
+    <ul>
+        {% for component in job.jobcomponent_set.all %} {% if component.type ==
+        'frame' %}
+        <li>
+            {{ component.material.name }} ({{ component.material.code }}) -
+            Quantity: {{ component.quantity }} - ${{ component.price }}
+        </li>
+        {% endif %} {% endfor %}
+    </ul>
+
+    <h4>Mats</h4>
+    <ul>
+        {% for component in job.jobcomponent_set.all %} {% if component.type ==
+        'mat' %}
+        <li>
+            {{ component.material.name }} ({{ component.material.code }}) -
+            Quantity: {{ component.quantity }} - ${{ component.price }}
+        </li>
+        {% endif %} {% endfor %}
+    </ul>
+
+    <h4>Glass</h4>
+    <ul>
+        {% for component in job.jobcomponent_set.all %} {% if component.type ==
+        'glass' %}
+        <li>
+            {{ component.material.name }} ({{ component.material.code }}) -
+            Quantity: {{ component.quantity }} - ${{ component.price }}
+        </li>
+        {% endif %} {% endfor %}
+    </ul>
+</div>
+
+<div class="mat-window">
+    <h3>Mat Window</h3>
+    {% if job.matwindow_set.exists %} {% with mat_window=job.matwindow_set.first
+    %}
+    <p>Width: {{ mat_window.width }}mm</p>
+    <p>Height: {{ mat_window.height }}mm</p>
+    <p>X Position: {{ mat_window.x_position }}mm</p>
+    <p>Y Position: {{ mat_window.y_position }}mm</p>
+    {% endwith %} {% else %}
+    <p>No mat window specified for this job.</p>
+    {% endif %}
+</div>
+
+<div class="job-actions">
+    <h3>Actions</h3>
+    <a href="{% url 'job_edit' job.id %}" class="button">Edit Job</a>
+    <a href="{% url 'work_order_generation' job.id %}" class="button"
+        >Generate Work Order</a
+    >
+    <a href="{% url 'invoice_creation' %}?job_id={{ job.id }}" class="button"
+        >Create Invoice</a
+    >
+</div>
+
+{% if job.invoice_set.exists %}
+<div class="job-invoices">
+    <h3>Related Invoices</h3>
+    <ul>
+        {% for invoice in job.invoice_set.all %}
+        <li>
+            <a href="{% url 'invoice_detail' invoice.id %}">
+                Invoice #{{ invoice.id }} - ${{ invoice.total_amount }}
+                (Created: {{ invoice.date_created|date:"F d, Y" }})
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %} {% endblock %} {% block extra_js %}
+<script>
+    // You can add any job-specific JavaScript here if needed
+</script>
+{% endblock %}

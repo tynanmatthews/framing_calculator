@@ -1,0 +1,115 @@
+{% extends 'base.html' %} {% block title %}Material List{% endblock %} {% block
+content %}
+<h1>Material List</h1>
+
+<div class="material-actions">
+    <a href="{% url 'material_create' %}" class="button">Add New Material</a>
+</div>
+
+<div class="material-list">
+    <h2>Frames</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Price</th>
+                <th>Width</th>
+                <th>Bay Number</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for material in materials %} {% if material.type == 'frame' %}
+            <tr>
+                <td>{{ material.name }}</td>
+                <td>{{ material.code }}</td>
+                <td>${{ material.price }}</td>
+                <td>{{ material.width|default_if_none:"-" }}</td>
+                <td>{{ material.bay_number|default_if_none:"-" }}</td>
+                <td>
+                    <a
+                        href="{% url 'material_edit' material.id %}"
+                        class="button"
+                        >Edit</a
+                    >
+                </td>
+            </tr>
+            {% endif %} {% empty %}
+            <tr>
+                <td colspan="6">No frame materials found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Mats</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for material in materials %} {% if material.type == 'mat' %}
+            <tr>
+                <td>{{ material.name }}</td>
+                <td>{{ material.code }}</td>
+                <td>${{ material.price }}</td>
+                <td>
+                    <a
+                        href="{% url 'material_edit' material.id %}"
+                        class="button"
+                        >Edit</a
+                    >
+                </td>
+            </tr>
+            {% endif %} {% empty %}
+            <tr>
+                <td colspan="4">No mat materials found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <h2>Glass</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Code</th>
+                <th>Price</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for material in materials %} {% if material.type == 'glass' %}
+            <tr>
+                <td>{{ material.name }}</td>
+                <td>{{ material.code }}</td>
+                <td>${{ material.price }}</td>
+                <td>
+                    <a
+                        href="{% url 'material_edit' material.id %}"
+                        class="button"
+                        >Edit</a
+                    >
+                </td>
+            </tr>
+            {% endif %} {% empty %}
+            <tr>
+                <td colspan="4">No glass materials found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %} {% block extra_js %}
+<script>
+    // You can add any material-list specific JavaScript here if needed
+</script>
+{% endblock %}

@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, reverse, redirect
 from django.http import HttpResponse
 # Create your views here.
 def index(request):
@@ -6,32 +6,79 @@ def index(request):
 
 # Views
 
-from django.shortcuts import render, redirect
 from django.views import View
 from .models import *
-from .forms import JobForm, InvoiceForm  # You'll need to create these forms
+from .forms import JobForm, InvoiceForm, MaterialForm
 
 class JobCreationView(View):
     def get(self, request):
         form = JobForm()
-        return render(request, 'job_creation.html', {'form': form})
+        frame_materials = Material.objects.filter(type='frame')
+        mat_materials = Material.objects.filter(type='mat')
+        glass_materials = Material.objects.filter(type='glass')
+
+        context = {
+            'form': form,
+            'frame_materials': frame_materials,
+            'mat_materials': mat_materials,
+            'glass_materials': glass_materials,
+        }
+        return render(request, 'job_creation.html', context)
 
     def post(self, request):
         form = JobForm(request.POST)
         if form.is_valid():
-            job = form.save()
+            job = form.save(commit=False)
+            job.total_price = 0  # You'll need to calculate this
+            job.save()
+
+            # Process job components (frames, mats, glass)
+            # Create MatWindow
+            # Update job total price
+
             return redirect('job_detail', job_id=job.id)
-        return render(request, 'job_creation.html', {'form': form})
+
+        # If form is not valid, re-render the page with error messages
+        frame_materials = Material.objects.filter(type='frame')
+        mat_materials = Material.objects.filter(type='mat')
+        glass_materials = Material.objects.filter(type='glass')
+
+        context = {
+            'form': form,
+            'frame_materials': frame_materials,
+            'mat_materials': mat_materials,
+            'glass_materials': glass_materials,
+        }
+        return render(request, 'job_creation.html', context)
 
 class JobDetailView(View):
     def get(self, request, job_id):
-        job = Job.objects.get(id=job_id)
-        return render(request, 'job_detail.html', {'job': job})
+        job = get_object_or_404(Job, id=job_id)
+        context = {
+            'job': job,
+        }
+        return render(request, 'job_detail.html', context)
 
 class MaterialListView(View):
     def get(self, request):
-        materials = Material.objects.all()
-        return render(request, 'material_list.html', {'materials': materials})
+        materials = Material.objects.all().order_by('type', 'name')
+        context = {
+            'materials': materials,
+        }
+        return render(request, 'material_list.html', context)
+
+class MaterialCreateView(View):
+    def get(self, request):
+        form = MaterialForm()
+        return render(request, 'material_create.html', {'form': form})
+
+    def post(self, request):
+        form = MaterialForm(request.POST)
+        if form.is_valid():
+            material = form.save()
+            return redirect(reverse('material_list'))
+        return render(request, 'material_create.html', {'form':form})
+
 
 class InvoiceCreationView(View):
     def get(self, request):

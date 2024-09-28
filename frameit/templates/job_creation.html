@@ -1,0 +1,142 @@
+{% extends 'base.html' %} {% block title %}Create New Job{% endblock %} {% block
+content %}
+<h1>Create New Job</h1>
+
+<form method="post">
+    {% csrf_token %}
+
+    <h2>Job Details</h2>
+    {{ form.non_field_errors }}
+
+    <div class="form-group">
+        {{ form.customer.errors }}
+        <label for="{{ form.customer.id_for_label }}">Customer:</label>
+        {{ form.customer }}
+    </div>
+
+    <div class="form-group">
+        {{ form.description.errors }}
+        <label for="{{ form.description.id_for_label }}">Description:</label>
+        {{ form.description }}
+    </div>
+
+    <h2>Job Components</h2>
+
+    <div id="frames">
+        <h3>Frames</h3>
+        <div class="frame-component">
+            <select name="frame_material" required>
+                <option value="">Select Frame Material</option>
+                {% for material in frame_materials %}
+                <option value="{{ material.id }}">
+                    {{ material.name }} - {{ material.code }}
+                </option>
+                {% endfor %}
+            </select>
+            <input
+                type="number"
+                name="frame_quantity"
+                value="1"
+                min="1"
+                required
+            />
+            <button type="button" class="add-frame">Add Another Frame</button>
+        </div>
+    </div>
+
+    <div id="mats">
+        <h3>Mats</h3>
+        <div class="mat-component">
+            <select name="mat_material" required>
+                <option value="">Select Mat Material</option>
+                {% for material in mat_materials %}
+                <option value="{{ material.id }}">
+                    {{ material.name }} - {{ material.code }}
+                </option>
+                {% endfor %}
+            </select>
+            <input
+                type="number"
+                name="mat_quantity"
+                value="1"
+                min="1"
+                required
+            />
+            <button type="button" class="add-mat">Add Another Mat</button>
+        </div>
+    </div>
+
+    <div id="glass">
+        <h3>Glass</h3>
+        <div class="glass-component">
+            <select name="glass_material" required>
+                <option value="">Select Glass Type</option>
+                {% for material in glass_materials %}
+                <option value="{{ material.id }}">
+                    {{ material.name }} - {{ material.code }}
+                </option>
+                {% endfor %}
+            </select>
+            <input
+                type="number"
+                name="glass_quantity"
+                value="1"
+                min="1"
+                required
+            />
+        </div>
+    </div>
+
+    <h3>Mat Window</h3>
+    <div id="mat-window">
+        <input
+            type="number"
+            name="mat_window_width"
+            placeholder="Width"
+            required
+        />
+        <input
+            type="number"
+            name="mat_window_height"
+            placeholder="Height"
+            required
+        />
+        <input
+            type="number"
+            name="mat_window_x"
+            placeholder="X Position"
+            required
+        />
+        <input
+            type="number"
+            name="mat_window_y"
+            placeholder="Y Position"
+            required
+        />
+    </div>
+
+    <button type="submit">Create Job</button>
+</form>
+
+{% endblock %} {% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const addFrameButton = document.querySelector(".add-frame");
+        const addMatButton = document.querySelector(".add-mat");
+
+        addFrameButton.addEventListener("click", function () {
+            const frameComponent = document
+                .querySelector(".frame-component")
+                .cloneNode(true);
+            document.getElementById("frames").appendChild(frameComponent);
+        });
+
+        addMatButton.addEventListener("click", function () {
+            const matComponent = document
+                .querySelector(".mat-component")
+                .cloneNode(true);
+            document.getElementById("mats").appendChild(matComponent);
+        });
+    });
+</script>
+{% endblock %}
