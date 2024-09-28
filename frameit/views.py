@@ -80,6 +80,28 @@ class MaterialCreateView(View):
         return render(request, 'material_create.html', {'form':form})
 
 
+class MaterialEditView(View):
+    def get(self, request, material_id):
+        material = get_object_or_404(Material, id=material_id)
+        form = MaterialForm(instance=material)
+        context = {
+            'material': material,
+            'form': form,
+        }
+        return render(request, 'material_edit.html', context)
+
+    def post(self, request, material_id):
+        material = get_object_or_404(Material, id=material_id)
+        form = MaterialForm(request.POST, instance=material)
+        if form.is_valid():
+            material = form.save()
+            return redirect(reverse('material_list'))
+        context = {
+            'form': form,
+            'material': material,
+        }
+        return render(request, 'material_edit.html', context)
+
 class InvoiceCreationView(View):
     def get(self, request):
         form = InvoiceForm()
