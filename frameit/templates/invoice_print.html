@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Invoice #{{ invoice.id }}</title>
+        <style>
+            body {
+                font-family: Arial, sans-serif;
+                line-height: 1.6;
+                color: #333;
+            }
+            .invoice-header {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            .invoice-details {
+                margin-bottom: 20px;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                margin-bottom: 20px;
+            }
+            th,
+            td {
+                border: 1px solid #ddd;
+                padding: 8px;
+                text-align: left;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+            .total-row {
+                font-weight: bold;
+            }
+            @media print {
+                .no-print {
+                    display: none;
+                }
+            }
+        </style>
+    </head>
+    <body>
+        <div class="invoice-header">
+            <h1>Invoice #{{ invoice.id }}</h1>
+        </div>
+
+        <div class="invoice-details">
+            <p><strong>Customer:</strong> {{ invoice.customer.name }}</p>
+            <p>
+                <strong>Date:</strong> {{ invoice.date_created|date:"F d, Y" }}
+            </p>
+            <p>
+                <strong>Due Date:</strong> {{ invoice.due_date|date:"F d, Y" }}
+            </p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Job ID</th>
+                    <th>Description</th>
+                    <th>Price</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in invoice.jobs.all %}
+                <tr>
+                    <td>{{ job.id }}</td>
+                    <td>{{ job.description }}</td>
+                    <td>${{ job.total_price|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td colspan="2">Total</td>
+                    <td>${{ invoice.total_amount|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">Amount Paid</td>
+                    <td>${{ invoice.amount_paid|floatformat:2 }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="2">Balance Due</td>
+                    <td>${{ invoice.balance_due|floatformat:2 }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <div>
+            <h3>Payment Terms</h3>
+            <p>
+                Please pay the balance due within 30 days of the invoice date.
+            </p>
+        </div>
+
+        <div class="no-print">
+            <button onclick="window.print()">Print Invoice</button>
+            <a href="{% url 'invoice_detail' invoice.id %}"
+                >Back to Invoice Detail</a
+            >
+        </div>
+    </body>
+</html>

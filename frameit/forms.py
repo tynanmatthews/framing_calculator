@@ -1,5 +1,9 @@
 from django import forms
 from .models import Customer, Material, Job, MatWindow, JobComponent, Invoice
+from django.contrib import messages
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
+from django.urls import reverse
 
 class CustomerForm(forms.ModelForm):
     class Meta:
@@ -68,6 +72,15 @@ class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
         fields = ['customer', 'jobs', 'amount_paid']
+        widgets = {
+                    'jobs': forms.SelectMultiple(attrs={'size': '10'}),
+                }
+
+class InvoiceEmailForm(forms.Form):
+    to_email = forms.EmailField(label="Recipient Email")
+    subject = forms.CharField(max_length=100)
+    message = forms.CharField(widget=forms.Textarea)
+    attach_pdf = forms.BooleanField(required=False, initial=True)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

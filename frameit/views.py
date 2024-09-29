@@ -1,14 +1,19 @@
 from django.shortcuts import render, get_object_or_404, reverse, redirect
 from django.http import HttpResponse
-# Create your views here.
-def index(request):
-    return HttpResponse("Hello lil fella!, welcome to the frameit index!")
-
-# Views
-
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.template.loader import get_template
 from django.views import View
+
 from .models import *
-from .forms import JobForm, InvoiceForm, MaterialForm
+from .forms import JobForm, InvoiceForm, MaterialForm, InvoiceEmailForm
+
+# From Claude's email code, check this thoroughly
+from django.urls import reverse
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
+import io
+from django.template.loader import get_template
+from xhtml2pdf import pisa
 
 class JobCreationView(View):
     def get(self, request):
@@ -103,21 +108,131 @@ class MaterialEditView(View):
         return render(request, 'material_edit.html', context)
 
 class InvoiceCreationView(View):
-    def get(self, request):
-        form = InvoiceForm()
-        return render(request, 'invoice_creation.html', {'form': form})
+        def get(self, request):
+            form = InvoiceForm()
+            # Annotate jobs with their total price
+            jobs = Job.objects.annotate(total_price=Sum('jobcomponent__price'))
+            form.fields['jobs'].queryset = jobs
+            form.fields['jobs'].widget.attrs['data-price'] = {job.id: str(job.total_price) for job in jobs}
+            return render(request, 'invoice_creation.html', {'form': form})
 
-    def post(self, request):
-        form = InvoiceForm(request.POST)
-        if form.is_valid():
-            invoice = form.save()
-            return redirect('invoice_detail', invoice_id=invoice.id)
-        return render(request, 'invoice_creation.html', {'form': form})
+        def post(self, request):
+            form = InvoiceForm(request.POST)
+            if form.is_valid():
+                invoice = form.save()
+                return redirect(reverse('invoice_detail', kwargs={'invoice_id': invoice.id}))
+
+            # If form is invalid, re-render with errors
+            jobs = Job.objects.annotate(total_price=Sum('jobcomponent__price'))
+            form.fields['jobs'].queryset = jobs
+            form.fields['jobs'].widget.attrs['data-price'] = {job.id: str(job.total_price) for job in jobs}
+            return render(request, 'invoice_creation.html', {'form': form})
 
 class InvoiceDetailView(View):
     def get(self, request, invoice_id):
-        invoice = Invoice.objects.get(id=invoice_id)
+        invoice = get_object_or_404(Invoice, id=invoice_id)
         return render(request, 'invoice_detail.html', {'invoice': invoice})
+
+class InvoiceEditView(View):
+    def get(self, request, invoice_id):
+        invoice = get_object_or_404(Invoice, id=invoice_id)
+        form = InvoiceForm(instance=invoice)
+
+        # Annotate jobs with their total price
+        jobs = Job.objects.annotate(total_price=Sum('jobcomponent__price'))
+        form.fields['jobs'].queryset = jobs
+        form.fields['jobs'].widget.attrs['data-price'] = {job.id: str(job.total_price) for job in jobs}
+
+        context = {
+            'form': form,
+            'invoice': invoice,
+        }
+        return render(request, 'invoice_edit.html', context)
+
+    def post(self, request, invoice_id):
+        invoice = get_object_or_404(Invoice, id=invoice_id)
+        form = InvoiceForm(request.POST, instance=invoice)
+
+        if form.is_valid():
+            updated_invoice = form.save()
+
+            # Recalculate total amount based on selected jobs
+            total_amount = sum(job.total_price for job in updated_invoice.jobs.all())
+            updated_invoice.total_amount = total_amount
+            updated_invoice.save()
+
+            return redirect(reverse('invoice_detail', kwargs={'invoice_id': invoice.id}))
+
+        # If form is invalid, re-render with errors
+        jobs = Job.objects.annotate(total_price=Sum('jobcomponent__price'))
+        form.fields['jobs'].queryset = jobs
+        form.fields['jobs'].widget.attrs['data-price'] = {job.id: str(job.total_price) for job in jobs}
+
+        context = {
+            'form': form,
+            'invoice': invoice,
+        }
+        return render(request, 'invoice_edit.html', context)
+
+class InvoicePrintView(LoginRequiredMixin, View):
+    def get(self, request, invoice_id):
+        invoice = get_object_or_404(Invoice, id=invoice_id)
+
+        # Calculate the due date (e.g., 30 days from creation)
+        due_date = invoice.date_created + timedelta(days=30)
+
+        context = {
+            'invoice': invoice,
+            'due_date': due_date,
+        }
+        return render(request, 'invoice_print.html', context)
+
+class InvoiceEmailView(LoginRequiredMixin, View):
+    def get(self, request, invoice_id):
+        invoice = get_object_or_404(Invoice, id=invoice_id)
+        initial_data = {
+            'to_email': invoice.customer.email,
+            'subject': f'Invoice #{invoice.id} from Your Company',
+            'message': f'Dear {invoice.customer.name},\n\nPlease find attached the invoice #{invoice.id} for your recent order. The total amount due is ${invoice.balance_due:.2f}.\n\nThank you for your business.\n\nBest regards,\nYour Company'
+        }
+        form = InvoiceEmailForm(initial=initial_data)
+        return render(request, 'invoice_email.html', {'form': form, 'invoice': invoice})
+
+    def post(self, request, invoice_id):
+        invoice = get_object_or_404(Invoice, id=invoice_id)
+        form = InvoiceEmailForm(request.POST)
+        if form.is_valid():
+            to_email = form.cleaned_data['to_email']
+            subject = form.cleaned_data['subject']
+            message = form.cleaned_data['message']
+            attach_pdf = form.cleaned_data['attach_pdf']
+
+            email = EmailMessage(
+                subject=subject,
+                body=message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[to_email],
+            )
+
+            if attach_pdf:
+                pdf = self.generate_pdf(invoice)
+                email.attach(f'invoice_{invoice.id}.pdf', pdf, 'application/pdf')
+
+            email.send()
+
+            messages.success(request, f'Invoice #{invoice.id} has been emailed to {to_email}')
+            return redirect(reverse('invoice_detail', kwargs={'invoice_id': invoice.id}))
+
+        return render(request, 'invoice_email.html', {'form': form, 'invoice': invoice})
+
+    def generate_pdf(self, invoice):
+        template = get_template('invoice_print.html')
+        html = template.render({'invoice': invoice})
+        result = io.BytesIO()
+        pdf = pisa.pisaDocument(io.BytesIO(html.encode("UTF-8")), result)
+        if not pdf.err:
+            return result.getvalue()
+        return None
 
 class JobCalculationView(View):
     def post(self, request):

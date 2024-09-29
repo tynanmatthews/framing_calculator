@@ -41,3 +41,7 @@ class Invoice(models.Model):
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     amount_paid = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     jobs = models.ManyToManyField(Job)
+
+    @property
+    def balance_due(self):
+        return self.total_amount - self.amount_paid

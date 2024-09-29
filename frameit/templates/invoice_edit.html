@@ -1,0 +1,72 @@
+{% extends 'base.html' %} {% block title %}Edit Invoice #{{ invoice.id }}{%
+endblock %} {% block content %}
+<h1>Edit Invoice #{{ invoice.id }}</h1>
+
+<form method="post" id="invoice-form">
+    {% csrf_token %} {{ form.non_field_errors }}
+
+    <div class="form-group">
+        {{ form.customer.errors }}
+        <label for="{{ form.customer.id_for_label }}">Customer:</label>
+        {{ form.customer }}
+    </div>
+
+    <div class="form-group">
+        {{ form.jobs.errors }}
+        <label for="{{ form.jobs.id_for_label }}">Select Jobs:</label>
+        {{ form.jobs }}
+    </div>
+
+    <div id="selected-jobs-summary">
+        <h3>Selected Jobs Summary</h3>
+        <ul id="job-list"></ul>
+        <p>Total Amount: $<span id="total-amount">0.00</span></p>
+    </div>
+
+    <div class="form-group">
+        {{ form.amount_paid.errors }}
+        <label for="{{ form.amount_paid.id_for_label }}">Amount Paid:</label>
+        {{ form.amount_paid }}
+    </div>
+
+    <button type="submit">Update Invoice</button>
+</form>
+
+<a href="{% url 'invoice_detail' invoice.id %}" class="button">Cancel</a>
+
+{% endblock %} {% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const jobSelect = document.getElementById(
+            "{{ form.jobs.id_for_label }}",
+        );
+        const jobList = document.getElementById("job-list");
+        const totalAmountSpan = document.getElementById("total-amount");
+        const amountPaidInput = document.getElementById(
+            "{{ form.amount_paid.id_for_label }}",
+        );
+
+        function updateJobSummary() {
+            let totalAmount = 0;
+            jobList.innerHTML = "";
+
+            Array.from(jobSelect.selectedOptions).forEach((option) => {
+                const jobId = option.value;
+                const jobName = option.text;
+                const jobPrice = parseFloat(option.getAttribute("data-price"));
+
+                const li = document.createElement("li");
+                li.textContent = `${jobName} - $${jobPrice.toFixed(2)}`;
+                jobList.appendChild(li);
+
+                totalAmount += jobPrice;
+            });
+
+            totalAmountSpan.textContent = totalAmount.toFixed(2);
+        }
+
+        jobSelect.addEventListener("change", updateJobSummary);
+        updateJobSummary(); // Call once to set initial state
+    });
+</script>
+{% endblock %}
