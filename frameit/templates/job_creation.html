@@ -1,14 +1,67 @@
 {% extends 'base.html' %} {% block title %}Create New Job{% endblock %} {% block content %}
 <h1 class="display-1">Create New Job</h1>
 
-
-
 <form method="post">
+    <!-- cross site request forgery token, important for security -->
     {% csrf_token %}
+    <h2>Customer Details</h2>
+    <!-- Collect all the customer details, these can be used to auto query DB -->
+    <div class="mb-3 form-group">
+        <label class="form-label" for="customer_fname">First Name</label>
+        <input class="form-control" id="customer_fname" type="text"/>
+        <label class="form-label" for="customer_lname">Last Name</label>
+        <input class="form-control" id="customer_lname" type="text"/>
+    </div>
+    <div class="mb-3 form-group">
+        <label class="form-label" for="customer_phone_number">Phone Number</label>
+        <input class="form-control" id="customer_phone_number" type="tel">
+    </div>
+    <div class="mb-3 form-group">
+        <label class="form-label" for="customer_email">Email Address</label>
+        <input class="form-control" id="customer_email" type="email" placeholder="someone@example.com">
+    </div>
+    <div class="mb-3 form-group">
+        <label class="form-label" for="customer_address">Address</label>
+        <input class="form-control" id="customer_address" type="text">
+    </div>
 
     <h2>Job Details</h2>
     {{ job_form.non_field_errors }}
 
+    <div class="mb-3 form-group">
+        <!-- Each of the sub div's provide a place to inject html if box is checked -->
+        <div>
+            <label class="form-label" for="require_mat">Does this item require a mat?</label>
+            <input class="checkbox" id="require_mat" type="checkbox"/>
+        </div>
+
+        <div>
+            <label class="form-label" for="require_frame">Is the item being framed?</label>
+            <input class="checkbox" id="require_frame" type="checkbox"/>
+        </div>
+
+        <div>
+            <label class="form-label" for="require_glass">Does the item require glass/acrylic?</label>
+            <input class="checkbox" id="require_glass" type="checkbox"/>
+        </div>
+
+        <div>
+            <label class="form-label" for="require_stretch">Is the item being stretched?</label>
+            <input class="checkbox" id="require_stretch" type="checkbox"/>
+        </div>
+
+        <div>
+            <label class="form-label" for="require_caption">Is a caption required?</label>
+            <input class="checkbox" id="require_caption" type="checkbox"/>
+        </div>
+
+        <div>
+            <label class="form-label" for="require_laminate">Is the item being laminated?</label>
+            <input class="checkbox" id="require_laminate" type="checkbox"/>
+        </div>
+    </div>
+
+    <!-- Below this point is the Claude genned form, useful for ideas, not for production -->
     <div class="mb-3 form-group">
         {{ job_form.customer.errors }}
         <label class="form-label" for="{{ job_form.customer.id_for_label }}">Customer:</label>
@@ -119,7 +172,7 @@
         />
     </div>
 
-    <button type="submit">Create Job</button>
+    <button type="submit" class="btn btn-lg btn-primary">Create Job</button>
 </form>
 
 {% endblock %} {% block extra_js %}
