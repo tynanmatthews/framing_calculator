@@ -8,7 +8,7 @@ from django.db.models import Sum, Q
 from django.core.paginator import Paginator
 
 from .models import *
-from .forms import JobForm, InvoiceForm, MaterialForm, InvoiceEmailForm
+from .forms import JobComponentForm, JobForm, InvoiceForm, MatWindowForm, MaterialForm, InvoiceEmailForm
 
 # From Claude's email code, check this thoroughly
 from django.urls import reverse
@@ -25,13 +25,17 @@ class HomeView(View):
 
 class JobCreationView(View):
     def get(self, request):
-        form = JobForm()
+        job_form = JobForm()
+        mat_window_form = MatWindowForm()
+        job_component_form = JobComponentForm()
         frame_materials = Material.objects.filter(type='frame')
         mat_materials = Material.objects.filter(type='mat')
         glass_materials = Material.objects.filter(type='glass')
 
         context = {
-            'form': form,
+            'job_form': job_form,
+            'job_component_form': job_component_form,
+            'mat_window_form': mat_window_form,
             'frame_materials': frame_materials,
             'mat_materials': mat_materials,
             'glass_materials': glass_materials,

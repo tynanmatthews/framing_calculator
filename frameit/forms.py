@@ -53,11 +53,18 @@ class JobForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['customer'].queryset = Customer.objects.all()
+        self.fields['customer'].widget.attrs.update({'class': 'form-control'})
+        self.fields['description'].widget.attrs.update({'class': 'form-control'})
 
 class MatWindowForm(forms.ModelForm):
     class Meta:
         model = MatWindow
         fields = ['width', 'height', 'x_position', 'y_position']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'form-control'})
 
 class JobComponentForm(forms.ModelForm):
     class Meta:
@@ -67,6 +74,8 @@ class JobComponentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['material'].queryset = Material.objects.all()
+        self.fields['material'].widget.attrs.update({'class': 'form-control'})
+
 
 class InvoiceForm(forms.ModelForm):
     class Meta:

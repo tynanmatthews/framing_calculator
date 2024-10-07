@@ -1,25 +1,28 @@
 {% extends 'base.html' %} {% block title %}Create New Job{% endblock %} {% block content %}
-<h1>Create New Job</h1>
+<h1 class="display-1">Create New Job</h1>
+
+
 
 <form method="post">
     {% csrf_token %}
 
     <h2>Job Details</h2>
-    {{ form.non_field_errors }}
+    {{ job_form.non_field_errors }}
 
-    <div class="form-group">
-        {{ form.customer.errors }}
-        <label for="{{ form.customer.id_for_label }}">Customer:</label>
-        {{ form.customer }}
+    <div class="mb-3 form-group">
+        {{ job_form.customer.errors }}
+        <label class="form-label" for="{{ job_form.customer.id_for_label }}">Customer:</label>
+        {{ job_form.customer}}
     </div>
 
     <div class="form-group">
-        {{ form.description.errors }}
-        <label for="{{ form.description.id_for_label }}">Description:</label>
-        {{ form.description }}
+        {{ job_form.description.errors }}
+        <label for="{{ job_form.description.id_for_label }}">Description:</label>
+        {{ job_form.description }}
     </div>
 
     <h2>Job Components</h2>
+    {{ job_component_form }}
 
     <div id="frames">
         <h3>Frames</h3>
@@ -87,7 +90,9 @@
     </div>
 
     <h3>Mat Window</h3>
+    {{ mat_window_form }}
     <div id="mat-window">
+        <!-- Below is the Claude form -->
         <input
             type="number"
             name="mat_window_width"
