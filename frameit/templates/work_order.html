@@ -1,0 +1,113 @@
+{% extends 'base.html' %} {% block title %}Work Order for Job #{{ job.id }}{%
+endblock %} {% block content %}
+<div class="work-order">
+    <h1>Work Order</h1>
+    <div class="work-order-header">
+        <p><strong>Job ID:</strong> {{ job.id }}</p>
+        <p><strong>Date:</strong> {{ current_date|date:"F d, Y" }}</p>
+        <p><strong>Customer:</strong> {{ job.customer.name }}</p>
+    </div>
+
+    <div class="job-details">
+        <h2>Job Details</h2>
+        <p><strong>Description:</strong> {{ job.description }}</p>
+        <p>
+            <strong>Total Price:</strong> ${{ job.total_price|floatformat:2 }}
+        </p>
+    </div>
+
+    <div class="components">
+        <h2>Components</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Type</th>
+                    <th>Material</th>
+                    <th>Quantity</th>
+                    <th>Dimensions</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for component in job.jobcomponent_set.all %}
+                <tr>
+                    <td>{{ component.get_type_display }}</td>
+                    <td>
+                        {{ component.material.name }} ({{
+                        component.material.code }})
+                    </td>
+                    <td>{{ component.quantity }}</td>
+                    <td>
+                        {% if component.type == 'frame' %} {{
+                        component.material.width }}mm {% elif component.type ==
+                        'mat' %} {{ job.matwindow_set.first.width }}mm x {{
+                        job.matwindow_set.first.height }}mm {% elif
+                        component.type == 'glass' %} {{
+                        job.matwindow_set.first.width }}mm x {{
+                        job.matwindow_set.first.height }}mm {% endif %}
+                    </td>
+                    <td>
+                        {% if component.type == 'frame' %} Bay: {{
+                        component.material.bay_number }} {% elif component.type
+                        == 'mat' %} Window Position: ({{
+                        job.matwindow_set.first.x_position }}, {{
+                        job.matwindow_set.first.y_position }}) {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="special-instructions">
+        <h2>Special Instructions</h2>
+        <p>{{ job.special_instructions|default:"None" }}</p>
+    </div>
+
+    <div class="signatures">
+        <div class="signature-line">
+            <p>Prepared By: _________________________</p>
+        </div>
+        <div class="signature-line">
+            <p>Approved By: _________________________</p>
+        </div>
+    </div>
+</div>
+
+<div class="no-print">
+    <button onclick="window.print()">Print Work Order</button>
+    <a href="{% url 'job_detail' job.id %}" class="button"
+        >Back to Job Detail</a
+    >
+</div>
+
+{% endblock %} {% block extra_css %}
+<style>
+    @media print {
+        .no-print {
+            display: none;
+        }
+    }
+    .work-order {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 20px;
+    }
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 8px;
+        text-align: left;
+    }
+    th {
+        background-color: #f2f2f2;
+    }
+    .signature-line {
+        margin-top: 30px;
+    }
+</style>
+{% endblock %}

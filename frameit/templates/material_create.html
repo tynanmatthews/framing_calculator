@@ -1,6 +1,5 @@
 <!-- material_create.html -->
-{% extends 'base.html' %} {% block title %}Create New Material{% endblock %} {%
-block content %}
+{% extends 'base.html' %} {% block title %}Create New Material{% endblock %} {%block content %}
 <h1>Create New Material</h1>
 
 <form method="post">
@@ -45,7 +44,7 @@ block content %}
     <button type="submit">Create Material</button>
 </form>
 
-<a href="{% url 'material_list' %}" class="button">Back to Material List</a>
+<a href="{% url 'frameit:material_list' %}" class="button">Back to Material List</a>
 
 {% endblock %} {% block extra_js %}
 <script>

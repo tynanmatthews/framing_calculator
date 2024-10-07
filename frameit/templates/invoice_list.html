@@ -1,0 +1,73 @@
+<!-- levers/frameit/templates/invoice_list.html -->
+{% extends 'base.html' %}
+
+{% block title %}Invoice List{% endblock %}
+
+{% block content %}
+<h1>Invoice List</h1>
+
+<div class="invoice-filters">
+    <form method="get">
+        <input type="text" name="customer" placeholder="Filter by customer name" value="{{ request.GET.customer }}">
+        <input type="date" name="start_date" placeholder="Start date" value="{{ request.GET.start_date }}">
+        <input type="date" name="end_date" placeholder="End date" value="{{ request.GET.end_date }}">
+        <button type="submit">Filter</button>
+    </form>
+</div>
+
+<table class="invoice-table">
+    <thead>
+        <tr>
+            <th>Invoice #</th>
+            <th>Customer</th>
+            <th>Date Created</th>
+            <th>Total Amount</th>
+            <th>Amount Paid</th>
+            <th>Balance Due</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for invoice in invoices %}
+        <tr>
+            <td>{{ invoice.id }}</td>
+            <td>{{ invoice.customer.name }}</td>
+            <td>{{ invoice.date_created|date:"F d, Y" }}</td>
+            <td>${{ invoice.total_amount|floatformat:2 }}</td>
+            <td>${{ invoice.amount_paid|floatformat:2 }}</td>
+            <td>${{ invoice.balance_due|floatformat:2 }}</td>
+            <td>
+                <a href="{% url 'frameit:invoice_detail' invoice.id %}" class="button">View</a>
+                <a href="{% url 'frameit:invoice_edit' invoice.id %}" class="button">Edit</a>
+                <a href="{% url 'frameit:invoice_print' invoice.id %}" class="button">Print</a>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7">No invoices found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="pagination">
+    <span class="step-links">
+        {% if invoices.has_previous %}
+            <a href="?page=1">&laquo; first</a>
+            <a href="?page={{ invoices.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ invoices.number }} of {{ invoices.paginator.num_pages }}.
+        </span>
+
+        {% if invoices.has_next %}
+            <a href="?page={{ invoices.next_page_number }}">next</a>
+            <a href="?page={{ invoices.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+    </span>
+</div>
+
+<a href="{% url 'frameit:invoice_create' %}" class="button">Create New Invoice</a>
+
+{% endblock %}

@@ -1,5 +1,4 @@
-{% extends 'base.html' %} {% block title %}Create New Invoice{% endblock %} {%
-block content %}
+{% extends 'base.html' %} {% block title %}Create New Invoice{% endblock %} {%block content %}
 <h1>Create New Invoice</h1>
 
 <form method="post" id="invoice-form">
@@ -32,7 +31,7 @@ block content %}
     <button type="submit">Create Invoice</button>
 </form>
 
-<a href="{% url 'invoice_list' %}" class="button">Back to Invoice List</a>
+<a href="{% url 'frameit:invoice_list' %}" class="button">Back to Invoice List</a>
 
 {% endblock %} {% block extra_js %}
 <script>
@@ -53,7 +52,7 @@ block content %}
             Array.from(jobSelect.selectedOptions).forEach((option) => {
                 const jobId = option.value;
                 const jobName = option.text;
-                const jobPrice = parseFloat(option.getAttribute("data-price"));
+                const jobPrice = parseFloat(option.getAttribute("total_price"));
 
                 const li = document.createElement("li");
                 li.textContent = `${jobName} - $${jobPrice.toFixed(2)}`;
@@ -62,7 +61,8 @@ block content %}
                 totalAmount += jobPrice;
             });
 
-            totalAmountSpan.textContent = totalAmount.toFixed(2);
+            totalPrice =
+            totalAmountSpan.textContent = totalPrice.toFixed(2);
             amountPaidInput.value = totalAmount.toFixed(2);
         }
 

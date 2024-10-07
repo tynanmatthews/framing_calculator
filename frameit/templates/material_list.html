@@ -1,9 +1,9 @@
-{% extends 'base.html' %} {% block title %}Material List{% endblock %} {% block
-content %}
+{% extends 'base.html' %} {% block title %}Material List{% endblock %} {% block content %}
+
 <h1>Material List</h1>
 
 <div class="material-actions">
-    <a href="{% url 'material_create' %}" class="button">Add New Material</a>
+    <a href="{% url 'frameit:material_create' %}" class="button">Add New Material</a>
 </div>
 
 <div class="material-list">
@@ -29,7 +29,7 @@ content %}
                 <td>{{ material.bay_number|default_if_none:"-" }}</td>
                 <td>
                     <a
-                        href="{% url 'material_edit' material.id %}"
+                        href="{% url 'frameit:material_edit' material.id %}"
                         class="button"
                         >Edit</a
                     >
@@ -61,7 +61,7 @@ content %}
                 <td>${{ material.price }}</td>
                 <td>
                     <a
-                        href="{% url 'material_edit' material.id %}"
+                        href="{% url 'frameit:material_edit' material.id %}"
                         class="button"
                         >Edit</a
                     >
@@ -93,7 +93,7 @@ content %}
                 <td>${{ material.price }}</td>
                 <td>
                     <a
-                        href="{% url 'material_edit' material.id %}"
+                        href="{% url 'frameit:material_edit' material.id %}"
                         class="button"
                         >Edit</a
                     >

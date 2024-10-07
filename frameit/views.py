@@ -3,6 +3,9 @@ from django.http import HttpResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.template.loader import get_template
 from django.views import View
+from django.utils import timezone
+from django.db.models import Sum, Q
+from django.core.paginator import Paginator
 
 from .models import *
 from .forms import JobForm, InvoiceForm, MaterialForm, InvoiceEmailForm
@@ -12,8 +15,13 @@ from django.urls import reverse
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 import io
+from datetime import datetime
 from django.template.loader import get_template
-from xhtml2pdf import pisa
+# from xhtml2pdf import pisa for email sending, stub for now
+
+class HomeView(View):
+    def get(self, request):
+        return render(request, 'base.html')
 
 class JobCreationView(View):
     def get(self, request):
@@ -41,7 +49,7 @@ class JobCreationView(View):
             # Create MatWindow
             # Update job total price
 
-            return redirect('job_detail', job_id=job.id)
+            return redirect('frameit:job_detail', job_id=job.id)
 
         # If form is not valid, re-render the page with error messages
         frame_materials = Material.objects.filter(type='frame')
@@ -81,7 +89,7 @@ class MaterialCreateView(View):
         form = MaterialForm(request.POST)
         if form.is_valid():
             material = form.save()
-            return redirect(reverse('material_list'))
+            return redirect(reverse('frameit:material_list'))
         return render(request, 'material_create.html', {'form':form})
 
 
@@ -100,7 +108,7 @@ class MaterialEditView(View):
         form = MaterialForm(request.POST, instance=material)
         if form.is_valid():
             material = form.save()
-            return redirect(reverse('material_list'))
+            return redirect(reverse('frameit:material_list'))
         context = {
             'form': form,
             'material': material,
@@ -111,16 +119,13 @@ class InvoiceCreationView(View):
         def get(self, request):
             form = InvoiceForm()
             # Annotate jobs with their total price
-            jobs = Job.objects.annotate(total_price=Sum('jobcomponent__price'))
-            form.fields['jobs'].queryset = jobs
-            form.fields['jobs'].widget.attrs['data-price'] = {job.id: str(job.total_price) for job in jobs}
             return render(request, 'invoice_creation.html', {'form': form})
 
         def post(self, request):
             form = InvoiceForm(request.POST)
             if form.is_valid():
                 invoice = form.save()
-                return redirect(reverse('invoice_detail', kwargs={'invoice_id': invoice.id}))
+                return redirect(reverse('frameit:invoice_detail', kwargs={'invoice_id': invoice.id}))
 
             # If form is invalid, re-render with errors
             jobs = Job.objects.annotate(total_price=Sum('jobcomponent__price'))
@@ -161,7 +166,7 @@ class InvoiceEditView(View):
             updated_invoice.total_amount = total_amount
             updated_invoice.save()
 
-            return redirect(reverse('invoice_detail', kwargs={'invoice_id': invoice.id}))
+            return redirect(reverse('frameit:invoice_detail', kwargs={'invoice_id': invoice.id}))
 
         # If form is invalid, re-render with errors
         jobs = Job.objects.annotate(total_price=Sum('jobcomponent__price'))
@@ -173,6 +178,33 @@ class InvoiceEditView(View):
             'invoice': invoice,
         }
         return render(request, 'invoice_edit.html', context)
+
+class InvoiceListView(View):
+    def get(self, request):
+        invoices = Invoice.objects.all().order_by('-date_created')
+
+        # Filter by customer name
+        customer_filter = request.GET.get('customer')
+        if customer_filter:
+            invoices = invoices.filter(customer__name__icontains=customer_filter)
+
+        # Filter by date range
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        if start_date and end_date:
+            start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+            end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+            invoices = invoices.filter(date_created__date__range=[start_date, end_date])
+
+        # Pagination
+        paginator = Paginator(invoices, 20)  # Show 20 invoices per page
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context = {
+            'invoices': page_obj,
+        }
+        return render(request, 'invoice_list.html', context)
 
 class InvoicePrintView(LoginRequiredMixin, View):
     def get(self, request, invoice_id):
@@ -221,7 +253,7 @@ class InvoiceEmailView(LoginRequiredMixin, View):
             email.send()
 
             messages.success(request, f'Invoice #{invoice.id} has been emailed to {to_email}')
-            return redirect(reverse('invoice_detail', kwargs={'invoice_id': invoice.id}))
+            return redirect(reverse('frameit:invoice_detail', kwargs={'invoice_id': invoice.id}))
 
         return render(request, 'invoice_email.html', {'form': form, 'invoice': invoice})
 
@@ -229,7 +261,9 @@ class InvoiceEmailView(LoginRequiredMixin, View):
         template = get_template('invoice_print.html')
         html = template.render({'invoice': invoice})
         result = io.BytesIO()
-        pdf = pisa.pisaDocument(io.BytesIO(html.encode("UTF-8")), result)
+        # pdf = pisa.pisaDocument(io.BytesIO(html.encode("UTF-8")), result)
+        print("PDF rendering isn't implemented yet")
+        return None
         if not pdf.err:
             return result.getvalue()
         return None
@@ -242,6 +276,10 @@ class JobCalculationView(View):
 
 class WorkOrderGenerationView(View):
     def get(self, request, job_id):
-        job = Job.objects.get(id=job_id)
+        job = get_object_or_404(Job, id=job_id)
+        context = {
+            "job": job,
+            'current_date': timezone.now(),
+        }
         # Generate work order logic here
-        return render(request, 'work_order.html', {'job': job})
+        return render(request, 'work_order.html', context)

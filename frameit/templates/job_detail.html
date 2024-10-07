@@ -1,5 +1,4 @@
-{% extends 'base.html' %} {% block title %}Job Detail - {{ job.id }}{% endblock
-%} {% block content %}
+{% extends 'base.html' %} {% block title %}Job Detail - {{ job.id }}{% endblock %} {% block content %}
 <h1>Job Detail</h1>
 
 <div class="job-info">
@@ -15,8 +14,7 @@
 
     <h4>Frames</h4>
     <ul>
-        {% for component in job.jobcomponent_set.all %} {% if component.type ==
-        'frame' %}
+        {% for component in job.jobcomponent_set.all %} {% if component.type == 'frame' %}
         <li>
             {{ component.material.name }} ({{ component.material.code }}) -
             Quantity: {{ component.quantity }} - ${{ component.price }}
@@ -26,8 +24,8 @@
 
     <h4>Mats</h4>
     <ul>
-        {% for component in job.jobcomponent_set.all %} {% if component.type ==
-        'mat' %}
+        {% for component in job.jobcomponent_set.all %}
+        {% if component.type == 'mat' %}
         <li>
             {{ component.material.name }} ({{ component.material.code }}) -
             Quantity: {{ component.quantity }} - ${{ component.price }}
@@ -37,8 +35,8 @@
 
     <h4>Glass</h4>
     <ul>
-        {% for component in job.jobcomponent_set.all %} {% if component.type ==
-        'glass' %}
+        {% for component in job.jobcomponent_set.all %}
+        {% if component.type == 'glass' %}
         <li>
             {{ component.material.name }} ({{ component.material.code }}) -
             Quantity: {{ component.quantity }} - ${{ component.price }}
@@ -49,8 +47,7 @@
 
 <div class="mat-window">
     <h3>Mat Window</h3>
-    {% if job.matwindow_set.exists %} {% with mat_window=job.matwindow_set.first
-    %}
+    {% if job.matwindow_set.exists %} {% with mat_window=job.matwindow_set.first %}
     <p>Width: {{ mat_window.width }}mm</p>
     <p>Height: {{ mat_window.height }}mm</p>
     <p>X Position: {{ mat_window.x_position }}mm</p>
@@ -62,11 +59,10 @@
 
 <div class="job-actions">
     <h3>Actions</h3>
-    <a href="{% url 'job_edit' job.id %}" class="button">Edit Job</a>
-    <a href="{% url 'work_order_generation' job.id %}" class="button"
+    <a href="{% url 'frameit:work_order_generation' job.id %}" class="button"
         >Generate Work Order</a
-    >
-    <a href="{% url 'invoice_creation' %}?job_id={{ job.id }}" class="button"
+    > <br/>
+    <a href="{% url 'frameit:invoice_create' %}?job_id={{ job.id }}" class="button"
         >Create Invoice</a
     >
 </div>

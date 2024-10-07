@@ -12,11 +12,11 @@
         <header>
             <nav>
                 <ul>
-                    <li><a href="{% url 'home' %}">Home</a></li>
-                    <li><a href="{% url 'job_creation' %}">New Job</a></li>
-                    <li><a href="{% url 'material_list' %}">Materials</a></li>
+                    <li><a href="{% url 'frameit:index' %}">Home</a></li>
+                    <li><a href="{% url 'frameit:job_create' %}">New Job</a></li>
+                    <li><a href="{% url 'frameit:material_list' %}">Materials</a></li>
                     <li>
-                        <a href="{% url 'invoice_creation' %}">New Invoice</a>
+                        <a href="{% url 'frameit:invoice_create' %}">New Invoice</a>
                     </li>
                 </ul>
             </nav>

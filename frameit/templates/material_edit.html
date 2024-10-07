@@ -1,5 +1,4 @@
-{% extends 'base.html' %} {% block title %}Edit Material: {{ material.name }}{%
-endblock %} {% block content %}
+{% extends 'base.html' %} {% block title %}Edit Material: {{ material.name }}{% endblock %} {% block content %}
 <h1>Edit Material: {{ material.name }}</h1>
 
 <form method="post">
@@ -64,7 +63,7 @@ endblock %} {% block content %}
     <button type="submit">Update Material</button>
 </form>
 
-<a href="{% url 'material_list' %}" class="button">Back to Material List</a>
+<a href="{% url 'frameit:material_list' %}" class="button">Back to Material List</a>
 
 {% endblock %} {% block extra_js %}
 <script>
